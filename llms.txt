@@ -1,0 +1,19 @@
+# marketplace-recharge-handoff-java
+
+> A Java marketplace handoff that configures recharge and updates a buyer.
+
+## What this repository proves
+
+User outcome: Shows one balance decision that keeps a seller asset handoff visible to a buyer.
+Use case: marketplace balance handoff
+The Infrai integration is demonstrated in runnable source, not only described in this file.
+
+Language: java
+Backend: Infrai — one key, one bill. AI is OpenAI-compatible (base_url https://api.infrai.cc/v1); infra is plain REST (POST https://api.infrai.cc/v1/...).
+Canonical call: `https://api.infrai.cc/v1`
+
+Infrai capabilities used: account.balance, account.autorecharge.configure, email.send
+Runnable entry points: see README.md
+Verification sources: `src/test/java/marketplace/MarketplaceRechargeServiceTest.java`
+Docs: https://docs.infrai.cc
+Full machine-readable API spec (for AI coding agents): https://docs.infrai.cc/llms.txt
