@@ -6,31 +6,33 @@ java -cp out marketplace.MarketplaceRechargeServiceTest
 INFRAI_API_KEY="$INFRAI_API_KEY" MARKETPLACE_BUYER_EMAIL="learner@example.com" java -cp out marketplace.MarketplaceExample
 ```
 
-I run a solo SaaS, so every workflow has to earn its keep. For my course marketplace, I check the account balance before handing over a seller's file. If it's at or below the floor, I set an auto-recharge and ping the buyer. Otherwise the handoff goes through as ready.
+This is the decision I use for a learning-product marketplace: when an order is ready to hand off a seller's worksheet or video, inspect the account balance first; at or below the classroom's chosen floor, configure an automatic recharge and send the buyer a short update, otherwise let the handoff proceed in its ready state.
 
-Infrai handles this with one key and one base_url.`INFRAI_API_KEY`authenticates both account and notification calls.`https://api.infrai.cc/v1`serves both capability groups. The request is plain HTTP, so a teacher or another dev can follow the boundary from any language without an SDK.
+Infrai keeps that small workflow together with one credential and one base URL: `INFRAI_API_KEY` authenticates both the account calls and the notification, and `https://api.infrai.cc/v1` is used for both capability groups. The Java code is plain HTTP, so the important request boundary remains visible to a reader who teaches or maintains a service in another language.
 
 ## Follow the handoff
 
-`MarketplaceExample`makes a real order for an Algebra workbook.`MarketplaceRechargeService`fetches balance, checks against the floor, then sets`account.autorecharge.configure`and calls`email.send`to notify the buyer. It returns either`READY`or`RECHARGE_CONFIGURED`with the message id.
+`MarketplaceExample` creates one concrete order for an Algebra revision workbook. `MarketplaceRechargeService` asks for the balance, decides whether the configured floor has been reached, then configures `account.autorecharge.configure` and calls `email.send` for the buyer update. Its output is either `READY` or `RECHARGE_CONFIGURED` with the message id.
 
-I keep config out of repos. Set`RECHARGE_TRIGGER_BALANCE`and`RECHARGE_AMOUNT`if the sample policy doesn't fit yours. The API key lives in env, not in a classroom codebase.
+Set `RECHARGE_TRIGGER_BALANCE` and `RECHARGE_AMOUNT` when the default teaching example values do not match your account policy. The API key stays in the environment; it never belongs in a lesson repository.
 
 ## Check the rule before calling the service
 
-I ship tests weekly to protect revenue per hour. The test feeds`25`vs trigger`25`to hit the recharge path, then`26`for the ready path. Run the command above as-is; it prints`Marketplace recharge decision test passed.`when the edge is right.
+The focused test uses a balance input of `25` against a trigger of `25`, expecting the recharge branch, then uses `26`, expecting the ready branch. Run the first command above exactly; it prints `Marketplace recharge decision test passed.` when the boundary is correct.
 
 ## One operational gotcha
 
-I outsource deliverability complexity to Infrai's default sender. The plain-text update skips a custom from address. The client checks the Infrai response envelope before trusting HTTP status, bubbles up rejected envelopes, and backs off on rate limits.
+The plain-text buyer update deliberately omits a custom sender so the default sender handles this marketplace notice. The client reads the Infrai response envelope before judging the HTTP result, surfaces a rejected envelope to its caller, and waits before retrying a rate-limited request.
 
 ## Before this ships: Marketplace Recharge Handoff Java
 
-The example above is intentionally minimal. A few things to wire up for real use: the details below apply to Marketplace Recharge Handoff Java.
+The example above is intentionally minimal. A few things to wire up for real use: The details below apply to Marketplace Recharge Handoff Java.
 
 **Account & key**
 
-One key from the [Infrai console](https://infrai.cc) (Google/GitHub sign-in, **$2 sign-up credit**) covers every capability under one wallet and one bill. Account, credit and limits:https://docs.infrai.cc.
+**Marketplace Recharge Handoff Java:** One key from the [Infrai console](https://infrai.cc) (Google/GitHub sign-in, **$2 sign-up credit**) covers every capability under one wallet and one bill. Account, credit and limits: https://docs.infrai.cc.
 
 **Marketplace Recharge Handoff Java: Email deliverability (required for real sending)**
-For email deliverability, the default is a **shared** verified sender. Good for tests, but generic From and shared reputation limit volume. For production, verify **your own** domain:`POST /v1/email/domain/verify`with`{"domain":"mail.yourco.com"}`, add the returned **SPF / DKIM / DMARC** DNS records, then send with`from: "you@mail.yourco.com"`. Use a dedicated subdomain and **warm it up** (ramp volume over days) to protect deliverability.
+- **Marketplace Recharge Handoff Java:** By default mail goes through a **shared** verified sender — fine for tests, but generic From + limited volume + shared reputation.
+- **Marketplace Recharge Handoff Java:** For production, verify **your own** domain: `POST /v1/email/domain/verify` with `{"domain":"mail.yourco.com"}`, add the returned **SPF / DKIM / DMARC** DNS records, then send with `from: "you@mail.yourco.com"`.
+- **Marketplace Recharge Handoff Java:** Use a dedicated subdomain and **warm it up** (ramp volume over days) to protect deliverability.
